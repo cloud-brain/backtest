@@ -1,0 +1,23 @@
+Package: backtest
+Type: Package
+Title: back test for stock acount
+Version: 0.3.3
+Author: person(family = 'Lao', first = 'Kaijun', email = 'cloud_brain@qq.com')
+Description: the package is for get the data and frame for quant
+Depends: R (>= 3.3.3)
+License: MIT
+LazyData: TRUE
+Depends: dplyr, tibble, lubridate
+Maintainer: Lao Kaijun <cloud_brain@qq.com>
+Imports:
+    lubridate,
+    dplyr,
+    R6,
+    PerformanceAnalytics,
+    RODBC,
+    stargazer,
+    DBI,
+    RMySQL,
+    tibble,
+    xts
+RoxygenNote: 6.0.1
