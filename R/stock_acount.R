@@ -1,6 +1,17 @@
 #' stock_acount
 #'
 #' create a R6 object of stock_acount.
+#' 
+#' @usage 
+#' \preformatted{
+#' p <- stock_acount$new(con, fee = 0.005)
+#' p$set_connection(con)
+#' p$show_connection()
+#' p$order_buy(date, stock, num = NULL, amount = NULL)
+#' p$order_sell(date, stock, num = NULL)
+#' p$order_to(date, stock, weight, amount = 'all')
+#' p$acount_update(date)
+#' }
 #' \code{stock_acount$new} to create new object;
 #' \code{set_connection}
 #' \code{order_buy} to buy the stock with fix number or amount
@@ -8,7 +19,6 @@
 #' \code{acount_update} to update the net value
 #'
 #' @param con a tiny connection
-#' @param acount_f integer, the initial money you have
 #' @param fee float, the fee you sold stock
 #' @param date date, the date you alter you stock acount
 #' @param stock vector, the stock you buy or sell
@@ -18,7 +28,7 @@
 #' @details
 #' the stock acount only charge the fee when you sold stock.
 #' one of num and amount is needed. if it have both, the num will be used
-#' amount is prefered becasue the price adjusted can often be wrong.
+#' when buy stock, amount is prefered becasue the price adjusted can easily be wrong.
 #'
 #'
 #' @docType class
@@ -49,7 +59,10 @@
 #' @importFrom RODBC sqlQuery
 #' @importFrom DBI dbGetQuery
 
+NULL
 
+#' @export
+#' 
 stock_acount <-
   R6Class("stock_acount",
           public = list(
@@ -185,7 +198,7 @@ stock_acount <-
                 stock_sell <- stock_change %>% subset(num < 0)
 
                 ##确定增加的资金量
-                acount_add <- private$fee * (sum(stock_now$num * price_now$price) -
+                acount_add <- private$fee * (sum(stock_now$num * price_now$price) +
                                                sum(stock_sell$num * price_now$price[match(stock_sell$code, price_now$code)]))
 
                 ##修正目标持仓和卖出量
