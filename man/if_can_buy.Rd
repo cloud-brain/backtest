@@ -20,7 +20,7 @@ if_can_buy(...)
 
 \item{stocks}{vecter of stock code list in tiny format}
 
-\item{buz_day}{integer or character format like \%Y\%m\%d, test for this day}
+\item{buz_day}{int or char, format like \%Y\%m\%d, test for this day}
 }
 \value{
 a data.frame with stock code and flag that 1 means purchasable and 0 not

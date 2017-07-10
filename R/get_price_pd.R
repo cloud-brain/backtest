@@ -4,8 +4,8 @@
 #'
 #' @param con a tiny connection
 #' @param stocks vecter of stock code list in tiny format
-#' @param beg_date integer or character format like \%Y\%m\%d, test for this day
-#' @param end_date integer or character format like \%Y\%m\%d, test for this day
+#' @param beg_date int or or char, format like \%Y\%m\%d, test for this day
+#' @param end_date int or or char, format like \%Y\%m\%d, test for this day
 #'
 #' @return
 #' a data.frame with stock code and price
@@ -13,7 +13,7 @@
 #' @examples
 #' \dontrun{
 #' con <- odbcConnect('tiny')
-#' is_st(con, c('SH600000','SZ000001'), 20110104)
+#' get_price_pd(con, c('SH600000','SZ000001'), 20110104. 20110131)
 #' }
 #'
 #' @importFrom RODBC sqlQuery
@@ -26,15 +26,14 @@ get_price_pd <- function(...)
   UseMethod('get_price_pd')
 }
 
-#' @rdname get_price
+#' @rdname get_price_pd
 #' @export
 get_price_pd.default <- function(...)
 {
   stop('unknown con type')
 }
 
-
-#' @rdname get_price
+#' @rdname get_price_pd
 #' @export
 get_price_pd.rdf <- function(con, stocks, begin_date, end_date)
 {

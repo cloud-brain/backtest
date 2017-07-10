@@ -9,7 +9,7 @@ max_back(x, type = c("yield", "acount"))
 \arguments{
 \item{x}{yield vector}
 
-\item{type}{yield for yield input, acount for net value input}
+\item{type}{char, yield input or net value input}
 }
 \description{
 calculate the max back

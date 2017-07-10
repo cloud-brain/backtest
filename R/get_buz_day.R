@@ -30,7 +30,6 @@ get_buz_day <- function(...)
 
 #' @rdname get_buz_day
 #' @export
-#'
 get_buz_day.default <- function(...)
 {
   return('unknown type')

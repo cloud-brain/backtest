@@ -2,18 +2,24 @@
 % Please edit documentation in R/get_price_pd.R
 \name{get_price_pd}
 \alias{get_price_pd}
+\alias{get_price_pd.default}
+\alias{get_price_pd.rdf}
 \title{Get stock price for a period}
 \usage{
 get_price_pd(...)
+
+\method{get_price_pd}{default}(...)
+
+\method{get_price_pd}{rdf}(con, stocks, begin_date, end_date)
 }
 \arguments{
 \item{con}{a tiny connection}
 
 \item{stocks}{vecter of stock code list in tiny format}
 
-\item{beg_date}{integer or character format like \%Y\%m\%d, test for this day}
+\item{end_date}{int or or char, format like \%Y\%m\%d, test for this day}
 
-\item{end_date}{integer or character format like \%Y\%m\%d, test for this day}
+\item{beg_date}{int or or char, format like \%Y\%m\%d, test for this day}
 }
 \value{
 a data.frame with stock code and price
@@ -24,7 +30,7 @@ Get stock price for a period
 \examples{
 \dontrun{
 con <- odbcConnect('tiny')
-is_st(con, c('SH600000','SZ000001'), 20110104)
+get_price_pd(con, c('SH600000','SZ000001'), 20110104. 20110131)
 }
 
 }

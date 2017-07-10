@@ -11,43 +11,51 @@
 #' p$order_sell(date, stock, num = NULL)
 #' p$order_to(date, stock, weight, amount = 'all')
 #' p$acount_update(date)
+#' p$show_stock()
+#' p$show_acount_f()
+#' p$show_trade_history()
+#' p$show_total_acount()
+#' p$show_holder_history(date)
 #' }
-#' \code{stock_acount$new} to create new object;
-#' \code{set_connection}
-#' \code{order_buy} to buy the stock with fix number or amount
-#' \code{order_sell} to sell the stock with fix number
-#' \code{acount_update} to update the net value
 #'
-#' @param con a tiny connection
+#' @param con connection for data
 #' @param fee float, the fee you sold stock
 #' @param date date, the date you alter you stock acount
 #' @param stock vector, the stock you buy or sell
-#' @param num the stock vol you buy or sell
-#' @param amount the stock amount you buy
+#' @param num vector, the stock vol you buy or sell
+#' @param amount vector, the stock amount you buy
 #'
-#' @details
-#' the stock acount only charge the fee when you sold stock.
-#' one of num and amount is needed. if it have both, the num will be used
-#' when buy stock, amount is prefered becasue the price adjusted can easily be wrong.
+#' @details 
+#' An \code{\link{R6Class}} generator object
+#'
+#' @format
+#' \describe{
+#' \item{\code{stock_acount$new(con, fee)}}{to create new object, this fee is charged when sell stock;}
+#' \item{\code{set_connection(con)}}{to set the connection;}
+#' \item{\code{show_connection(con)}}{to return the connection;}
+#' \item{\code{order_buy(date, stock, num, amount)}}{to buy the stock list, one of num and amount is needed.
+#' if it have both, the num will be used. amount is preferd because adjust price is easily wrong.
+#' if lenght amount is one, it will be rep for every stock.}
+#' \item{\code{order_sell(date, stock, num)}}{to sell the stock with fix number}
+#' \item{\code{order_to(date, stock, weight, amount = 'all')}}{buy the stock to the target. for unknown amount , it use weight instead}
+#' \item{\code{acount_update(date)}}{to update the acount by close price, date can be a vector, so that can update several days for once}
+#' \item{\code{show_stock()}}{to show the stock hold now}
+#' \item{\code{show_acount_f()}}{to show the stock free money}
+#' \item{\code{show_trade_history()}}{to show trade_history}
+#' \item{\code{show_total_acount()}}{to show total acount history}
+#' \item{\code{show_holder_history(date)}}{to show holder stock in history, date can be vector}
+#' }
 #'
 #'
 #' @docType class
 #'
-#' @format An \code{\link{R6Class}} generator object
-#' \preformatted{
-#'  stock_acount$new(con = NULL, acount_f = 1000000, fee = 0.005)
-#'
-#' }
-#'
-#'
 #' @examples
 #' \dontrun{
 #' con <- odbcConnect('tiny')
-#' my_acount <- stock_acount$new(con = con, acount_f = 1000000)
-#' my_acount$order_buy(as.Date('2015-01-04'), stock = 'SH600000',num = 1000)
+#' my_acount <- stock_acount$new(con = con)
+#' my_acount$order_buy(as.Date('2015-01-04'), stock = '600000.SH',num = 1000)
 #' my_acount$acount_update(as.Date('2015-01-04'))
-#' my_acount$order_sell(as.Date('2015-01-05'), stock = 'SH600000', num = 1000)
-#' my_acount$order_to(date, stock, weight, amount = 'all')
+#' my_acount$order_sell(as.Date('2015-01-05'), stock = '600000.SH', num = 500)
 #' my_acount$acount_update(as.Date('2015-01-05'))
 #' my_acount$show_acount_f()
 #' }
@@ -59,7 +67,6 @@
 #' @importFrom RODBC sqlQuery
 #' @importFrom DBI dbGetQuery
 
-NULL
 
 #' @export
 #' 
@@ -170,60 +177,54 @@ stock_acount <-
                 }
                 return(tibble())
               }
+              
               ##目标股票池
-              stock_target <- tibble(code = stock, weight)
-
+              stock_target <- tibble(code = stock, weight) %>%
+                mutate(price = get_price(con, code, date, type = 'vwap')$price)
+              
               ##当前股票池
               stock_now <- mutate(private$stock_holder,
-                                  canbuy = if_can_buy(private$con, code, date, full = T)$canbuy)
+                                  canbuy = if_can_buy(con, code, date, full = T)$canbuy)
               wait_sell <- subset(stock_now, canbuy == 0) %>% select(-canbuy)
-              stock_now <- subset(stock_now, canbuy == 1) %>% select(-canbuy)
-
-              ##获取价格信息
-              price_target <- get_price(private$con, stock_target$code, date, type = 'vwap')
-              price_now <- get_price(private$con, stock_now$code, date, type = 'vwap')
-
+              stock_now <- subset(stock_now, canbuy == 1) %>% select(-canbuy) %>% 
+                mutate(price = get_price(con, code, date, type = 'vwap')$price)
+              
               if(amount == 'all')
               {
+                
                 ##第一次确定可用金额
-
                 acount_total <- private$acount_f +
-                  (1 - private$fee) * sum(stock_now$num * price_now$price)
-
+                  (1 - private$fee) * with(stock_now, sum(num * price))
+                
                 #确定目标持仓
-                stock_target <- stock_target %>% mutate(num = acount_total * weight / price_target$price)
-
+                stock_target <- stock_target %>% mutate(num = acount_total * weight / price)
+                
                 ##第一次确定卖出量
-                stock_change <- stock_combine(stock_target, stock_now, type = 'sub')
+                stock_change <- stock_combine(stock_target, stock_now, type = 'sub', add_price = T)
                 stock_sell <- stock_change %>% subset(num < 0)
-
-                ##确定增加的资金量
-                acount_add <- private$fee * (sum(stock_now$num * price_now$price) +
-                                               sum(stock_sell$num * price_now$price[match(stock_sell$code, price_now$code)]))
-
+                
+                ##第二次确定可用金额
+                acount_total <- private$acount_f + with(stock_now, sum(num * price)) +
+                  0.005 * with(stock_sell, sum(num * price))
+                
                 ##修正目标持仓和卖出量
-                stock_target <- stock_target %>% mutate(num = num + acount_add * weight / price_target$price)
-                stock_change <- stock_combine(stock_target, stock_now, type = 'sub')
-
-                ##第二次确定买入量和卖出量
-                stock_sell <- stock_change %>% filter(num < 0) %>%
-                  mutate(num = abs(num), price = price_now$price[match(code, price_now$code)])
-                stock_buy <- stock_change %>% filter(num > 0) %>%
-                  mutate(price = price_target$price[match(code, price_target$code)])
-
+                stock_target <- stock_target %>% mutate(num = acount_total * weight / price)
+                stock_change <- stock_combine(stock_target, stock_now, type = 'sub', add_price = T)
+                stock_sell <- stock_change %>% subset(num < 0)
+                stock_buy <- stock_change %>% subset(num > 0)
+                
                 ##修正剩余资金
-                private$acount_f <- 0
+                private$acount_f <- private$acount_f +
+                  0.995 * with(stock_sell, sum(-num * price)) - with(stock_buy, sum(num * price))
+                
               }else{
                 #确定目标持仓
-                price_target <- get_price(private$con, stock_target$code, date, type = 'vwap')
-                stock_target <- stock_target %>% mutate(num = amount * weight / price_target$price)
+                stock_target <- stock_target %>% mutate(num = amount * weight / price)
 
                 ##确定卖出量
-                stock_change <- stock_combine(stock_target, stock_now, type = 'sub')
-                stock_sell <- stock_change %>% filter(num < 0) %>%
-                  mutate(num = abs(num), price = price_now$price[match(code, price_now$code)])
-                stock_buy <- stock_change %>% filter(num > 0) %>%
-                  mutate(price = price_target$price[match(code, price_target$code)])
+                stock_change <- stock_combine(stock_target, stock_now, type = 'sub', add_price = T)
+                stock_sell <- stock_change %>% filter(num < 0) %>% mutate(num = abs(num))
+                stock_buy <- stock_change %>% filter(num > 0)
 
                 private$acount_f <- private$acount_f + with(stock_sell, sum(price * num)) * (1 - private$fee) -
                   with(stock_buy, sum(price * num))
@@ -316,10 +317,16 @@ stock_acount <-
 
 ##用于组合数据表
 ##stock列表的组合为code,num
-stock_combine <- function(stock_old, stock_chg, type = c('add','sub'))
+stock_combine <- function(stock_old, stock_chg, type = c('add','sub'), add_price = F)
 {
   type <- switch(type[1], add = 1, sub = -1)
   temp <- full_join(stock_old, stock_chg %>% rename(num_d = num), by = 'code', all = T)
-  return(temp %>% mutate(num = ifelse(is.na(num), 0, num) + type * ifelse(is.na(num_d), 0, num_d)) %>% select(code, num))
+  temp <- temp %>% mutate(num = ifelse(is.na(num), 0, num) + type * ifelse(is.na(num_d), 0, num_d))
+  if(add_price)
+  {
+    return(temp %>% mutate(price = ifelse(is.na(price.x), price.y, price.x)) %>% select(code, num, price))
+  }else{
+    return(temp %>% select(code, num))
+  }
 }
 

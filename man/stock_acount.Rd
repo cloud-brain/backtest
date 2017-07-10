@@ -4,18 +4,40 @@
 \name{stock_acount}
 \alias{stock_acount}
 \title{stock_acount}
-\format{An \code{\link{R6Class}} generator object
-\preformatted{
- stock_acount$new(con = NULL, acount_f = 1000000, fee = 0.005)
-
+\format{\describe{
+\item{\code{stock_acount$new(con, fee)}}{to create new object, this fee is charged when sell stock;}
+\item{\code{set_connection(con)}}{to set the connection;}
+\item{\code{show_connection(con)}}{to return the connection;}
+\item{\code{order_buy(date, stock, num, amount)}}{to buy the stock list, one of num and amount is needed.
+if it have both, the num will be used. amount is preferd because adjust price is easily wrong.
+if lenght amount is one, it will be rep for every stock.}
+\item{\code{order_sell(date, stock, num)}}{to sell the stock with fix number}
+\item{\code{order_to(date, stock, weight, amount = 'all')}}{buy the stock to the target. for unknown amount , it use weight instead}
+\item{\code{acount_update(date)}}{to update the acount by close price, date can be a vector, so that can update several days for once}
+\item{\code{show_stock()}}{to show the stock hold now}
+\item{\code{show_acount_f()}}{to show the stock free money}
+\item{\code{show_trade_history()}}{to show trade_history}
+\item{\code{show_total_acount()}}{to show total acount history}
+\item{\code{show_holder_history(date)}}{to show holder stock in history, date can be vector}
 }}
 \usage{
-stock_acount
+\preformatted{
+p <- stock_acount$new(con, fee = 0.005)
+p$set_connection(con)
+p$show_connection()
+p$order_buy(date, stock, num = NULL, amount = NULL)
+p$order_sell(date, stock, num = NULL)
+p$order_to(date, stock, weight, amount = 'all')
+p$acount_update(date)
+p$show_stock()
+p$show_acount_f()
+p$show_trade_history()
+p$show_total_acount()
+p$show_holder_history(date)
+}
 }
 \arguments{
-\item{con}{a tiny connection}
-
-\item{acount_f}{integer, the initial money you have}
+\item{con}{connection for data}
 
 \item{fee}{float, the fee you sold stock}
 
@@ -23,35 +45,23 @@ stock_acount
 
 \item{stock}{vector, the stock you buy or sell}
 
-\item{num}{the stock vol you buy or sell}
+\item{num}{vector, the stock vol you buy or sell}
 
-\item{amount}{the stock amount you buy}
+\item{amount}{vector, the stock amount you buy}
 }
 \description{
 create a R6 object of stock_acount.
 }
 \details{
-the stock acount only charge the fee when you sold stock.
-one of num and amount is needed. if it have both, the num will be used
-amount is prefered becasue the price adjusted can often be wrong.
+An \code{\link{R6Class}} generator object
 }
-\section{Details}{
-
-\code{$new(con, fee = 0.005)} to create new object;
-\code{set_connection}
-\code{order_buy} to buy the stock with fix number or amount
-\code{order_sell} to sell the stock with fix number
-\code{acount_update} to update the net value
-}
-
 \examples{
 \dontrun{
 con <- odbcConnect('tiny')
-my_acount <- stock_acount$new(con = con, acount_f = 1000000)
-my_acount$order_buy(as.Date('2015-01-04'), stock = 'SH600000',num = 1000)
+my_acount <- stock_acount$new(con = con)
+my_acount$order_buy(as.Date('2015-01-04'), stock = '600000.SH',num = 1000)
 my_acount$acount_update(as.Date('2015-01-04'))
-my_acount$order_sell(as.Date('2015-01-05'), stock = 'SH600000', num = 1000)
-my_acount$order_to(date, stock, weight, amount = 'all')
+my_acount$order_sell(as.Date('2015-01-05'), stock = '600000.SH', num = 500)
 my_acount$acount_update(as.Date('2015-01-05'))
 my_acount$show_acount_f()
 }

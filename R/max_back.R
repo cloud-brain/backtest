@@ -3,7 +3,7 @@
 #' calculate the max back
 #'
 #' @param x yield vector
-#' @param type yield for yield input, acount for net value input
+#' @param type char, yield input or net value input
 #'
 #' @examples
 #' data(m_index_acount)

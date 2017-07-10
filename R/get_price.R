@@ -13,7 +13,7 @@
 #' @examples
 #' \dontrun{
 #' con <- odbcConnect('tiny')
-#' is_st(con, c('SH600000','SZ000001'), 20110104)
+#' get_price(con, c('SH600000','SZ000001'), 20110104)
 #' }
 #'
 #' @importFrom RODBC sqlQuery

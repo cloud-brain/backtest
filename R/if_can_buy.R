@@ -4,7 +4,7 @@
 #'
 #' @param con a tiny connection
 #' @param stocks vecter of stock code list in tiny format
-#' @param buz_day integer or character format like \%Y\%m\%d, test for this day
+#' @param buz_day int or char, format like \%Y\%m\%d, test for this day
 #'
 #' @details
 #' if the amount equal to 0 or high price equal to low price, the stock regards can't buy that day.

@@ -1,37 +1,44 @@
 #' factor_acount
 #'
 #' create a R6 object of acount to analyse factor. can calculate the factor/number rank stock easily.
-#' \code{factor_update} update the history date
+#' 
+#' @usage 
+#' \preformatted{
+#' p <- factor_acount$new(con, buy_stock = NULL)
+#' p$factor_update(buy_num, begin_date, end_date, wait_sell = F, refresh = T, show_trace = T)
+#' p$show_wait_sell()
+#' }
 #'
-#' @param con a tiny connection
-#' @param fee float, the fee you sold stock
-#' @param begin_date, the first date to buy stock list
-#' @param end_date, the end date to hold stock list
-#' @param wait_sell, logical. if True, sell the stock sell every day
+#' @param con connection for data
+#' @param buy_stock data.frame, column code, buy_date(date), num(int)
+#' @param begin_date int, the first date to backtest
+#' @param end_date, int, the end date to backtest
+#' @param wait_sell, logic. if True, sell the stock wait for sell every day
+#' @param refresh, logic, clean acount history
+#' @param show_trace, logic, print history day by day
 #' @param ... the paramater inherit from stock_acount
 #'
 #' @details
-#' it inherit from stock_acount
-#'
+#' An \code{\link{R6Class}} generator object inherit from stock_acount
 #'
 #' @docType class
 #'
-#' @format An \code{\link{R6Class}} generator object
-#' \preformatted{
-#'  stock_acount$new(con, buy_stock, fee = 0.005)
-#'  factor_update(buy_num, begin_date, end_date, wait_sell = F, refresh = T, show_trace = T)
+#' @format
+#' \describe{
+#' \item{\code{stock_acount$new(con, buy_stock)}}{to create new object}
+#' \item{\code{factor_update(buy_num, begin_date, end_date, wait_sell = F, refresh = T, show_trace = T)}}{factor buy top buy_num stock every month}
+#' \item{\code{show_wait_sell()}}{to show stock can't sell}
 #' }
 #'
 #'
 #' @examples
 #' \dontrun{
 #' con <- odbcConnect('tiny')
-#' my_acount <- stock_acount$new(con = con, acount_f = 1000000)
-#' my_acount$order_buy(as.Date('2015-01-04'), stock = 'SH600000',num = 1000)
-#' my_acount$acount_update(as.Date('2015-01-04'))
-#' my_acount$order_sell(as.Date('2015-01-05'), stock = 'SH600000', num = 1000)
-#' my_acount$acount_update(as.Date('2015-01-05'))
-#' my_acount$show_acount_f()
+#' my_acount <- factor_acount$new(con = con, 
+#'                                buy_stock = data_all %>% 
+#'                                   transmute(code = wind_code, buy_date = ymd(trade_dt)) %>%
+#'                                   group_by(buy_date) %>% mutate(num = 1:n()))
+#' my_acount$factor_update(20, 20170101, 20170531, wait_sell = T)
 #' }
 #'
 #' @keywords data
@@ -122,6 +129,10 @@ factor_acount <-
                 if(show_trace)
                   self$show_total_acount(length(update_date)) %>% print
               }
+            },
+            show_wait_sell = function()
+            {
+              return(private$wait_for_sell)
             }
           ),
           private = list(

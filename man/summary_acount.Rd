@@ -4,11 +4,11 @@
 \alias{summary_acount}
 \title{Summary the acount performance}
 \usage{
-summary_acount(total_acount, benchmark = F, ylog = FALSE, plot = T,
+summary_acount(total_acount, benchmark = F, ylog = T, plot = T,
   show_result = T, ...)
 }
 \arguments{
-\item{total_acount}{dataframe with daily net value. if benchmark mod there must be a variable named benchmark. All acount should stardardize for 1 million initial amount}
+\item{total_acount}{dataframe, with column date, acount, if benchmark mod there must be a variable named benchmark. All acount should stardardize for 1 million initial amount}
 
 \item{benchmark}{logical, if relative mod or not}
 
@@ -22,18 +22,18 @@ summary_acount(total_acount, benchmark = F, ylog = FALSE, plot = T,
 A plot show the cumulative return and drawdown
 If there's no benchmark ,a dataframe includes that by year
 \itemize{
- \item{\code{yeild}: last value this year / last value last year}
+ \item{\code{yield}: last value this year / last value last year}
  \item{\code{max_back}: max back}
- \item{\code{back_ratio}: yeild / max_back}
- \item{\code{sharpratio}: mean(yeild)/(sd(yeild) * sqrt(the business day this year))}
+ \item{\code{back_ratio}: yield / max_back}
+ \item{\code{sharpratio}: mean(yield)/(sd(yield) * sqrt(the business day this year))}
  \item{\code{capital_loss}: min(0,min(net value)/1000000 - 1)}
 }
 If there's benchmark mode,a dataframe includes more by year that
 \itemize{
- \item{\code{yeild_r}: cumprod(yeild - benchmark yeild)}
- \item{\code{max_back_r}: max back for yeild_r}
- \item{\code{back_ratio_r}: yeild_r / max_back_r}
- \item{\code{sharpratio}: mean(yeild_r)/(sd(yeild_r) * sqrt(the business day this year))}
+ \item{\code{yield_r}: cumprod(yield - benchmark yield)}
+ \item{\code{max_back_r}: max back for yield_r}
+ \item{\code{back_ratio_r}: yield_r / max_back_r}
+ \item{\code{sharpratio}: mean(yield_r)/(sd(yield_r) * sqrt(the business day this year))}
 }
 }
 \description{
