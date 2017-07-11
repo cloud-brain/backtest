@@ -180,14 +180,14 @@ stock_acount <-
               
               ##目标股票池
               stock_target <- tibble(code = stock, weight) %>%
-                mutate(price = get_price(con, code, date, type = 'vwap')$price)
+                mutate(price = get_price(private$con, code, date, type = 'vwap')$price)
               
               ##当前股票池
               stock_now <- mutate(private$stock_holder,
-                                  canbuy = if_can_buy(con, code, date, full = T)$canbuy)
+                                  canbuy = if_can_buy(private$con, code, date, full = T)$canbuy)
               wait_sell <- subset(stock_now, canbuy == 0) %>% select(-canbuy)
               stock_now <- subset(stock_now, canbuy == 1) %>% select(-canbuy) %>% 
-                mutate(price = get_price(con, code, date, type = 'vwap')$price)
+                mutate(price = get_price(private$con, code, date, type = 'vwap')$price)
               
               if(amount == 'all')
               {
