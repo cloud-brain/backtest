@@ -5,7 +5,7 @@
 \alias{stock_acount}
 \title{stock_acount}
 \format{\describe{
-\item{\code{stock_acount$new(con, fee)}}{to create new object, this fee is charged when sell stock;}
+\item{\code{stock_acount$new(con, fee, acount_only)}}{to create new object, this fee is charged when sell stock;}
 \item{\code{set_connection(con)}}{to set the connection;}
 \item{\code{show_connection(con)}}{to return the connection;}
 \item{\code{order_buy(date, stock, num, amount)}}{to buy the stock list, one of num and amount is needed.
@@ -22,7 +22,7 @@ if lenght amount is one, it will be rep for every stock.}
 }}
 \usage{
 \preformatted{
-p <- stock_acount$new(con, fee = 0.005)
+p <- stock_acount$new(con, fee = 0.005, acount_only = F)
 p$set_connection(con)
 p$show_connection()
 p$order_buy(date, stock, num = NULL, amount = NULL)
@@ -48,6 +48,8 @@ p$show_holder_history(date)
 \item{num}{vector, the stock vol you buy or sell}
 
 \item{amount}{vector, the stock amount you buy}
+
+\item{acount_only}{logic, if save the trade_history and other details}
 }
 \description{
 create a R6 object of stock_acount.

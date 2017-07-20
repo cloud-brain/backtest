@@ -1,7 +1,7 @@
 Package: backtest
 Type: Package
 Title: back test for stock acount
-Version: 0.4.0
+Version: 0.4.1
 Author: person(family = 'Lao', first = 'Kaijun', email = 'cloud_brain@qq.com')
 Description: the package is for get the data and frame for quant
 Depends: R (>= 3.3.3)

@@ -4,7 +4,7 @@
 #' 
 #' @usage 
 #' \preformatted{
-#' p <- stock_acount$new(con, fee = 0.005)
+#' p <- stock_acount$new(con, fee = 0.005, acount_only = F)
 #' p$set_connection(con)
 #' p$show_connection()
 #' p$order_buy(date, stock, num = NULL, amount = NULL)
@@ -24,13 +24,14 @@
 #' @param stock vector, the stock you buy or sell
 #' @param num vector, the stock vol you buy or sell
 #' @param amount vector, the stock amount you buy
-#'
+#' @param acount_only logic, if save the trade_history and other details
+#' 
 #' @details 
 #' An \code{\link{R6Class}} generator object
 #'
 #' @format
 #' \describe{
-#' \item{\code{stock_acount$new(con, fee)}}{to create new object, this fee is charged when sell stock;}
+#' \item{\code{stock_acount$new(con, fee, acount_only)}}{to create new object, this fee is charged when sell stock;}
 #' \item{\code{set_connection(con)}}{to set the connection;}
 #' \item{\code{show_connection(con)}}{to return the connection;}
 #' \item{\code{order_buy(date, stock, num, amount)}}{to buy the stock list, one of num and amount is needed.
@@ -73,11 +74,12 @@
 stock_acount <-
   R6Class("stock_acount",
           public = list(
-            initialize = function(con, fee = 0.005)
+            initialize = function(con, fee = 0.005, acount_only = F)
             {
               private$con <- con
               private$acount_f <- 1000000
               private$fee <- fee
+              private$acount_only <- acount_only
             },
 
             ##设定接口
@@ -131,9 +133,12 @@ stock_acount <-
 
               ##更新持仓
               private$stock_holder <- stock_combine(private$stock_holder, stock_buy, type = 'add')
-
-              ##更新交易历史
-              private$trade_history <- rbind(private$trade_history, cbind(stock_buy, date = date, type = 1))
+              
+              if(!private$acount_only)
+              {
+                ##更新交易历史
+                private$trade_history <- rbind(private$trade_history, cbind(stock_buy, date = date, type = 1))
+              }
             },
 
             ##卖出函数（仅支持数量）
@@ -157,8 +162,12 @@ stock_acount <-
               if(any(private$stock_holder$num <0))
                 stop("can't short stock")
 
-              ##更新交易历史
-              private$trade_history <- rbind(private$trade_history, cbind(sell_stock, date = date, type = -1))
+              
+              if(!private$acount_only)
+              {
+                ##更新交易历史
+                private$trade_history <- rbind(private$trade_history, cbind(sell_stock, date = date, type = -1))
+              }
             },
 
 
@@ -235,9 +244,13 @@ stock_acount <-
               ###无法出售+目标持仓等于当前持仓
               private$stock_holder <- stock_combine(stock_target, wait_sell, type = 'add') %>%
                 select(code, num) %>% filter(num > 0)
-              private$trade_history <- rbind(private$trade_history,
-                                             cbind(stock_sell, date = date, type = -1),
-                                             cbind(stock_buy, date = date, type = 1))
+              
+              if(!private$acount_only)
+              {
+                private$trade_history <- rbind(private$trade_history,
+                                               cbind(stock_sell, date = date, type = -1),
+                                               cbind(stock_buy, date = date, type = 1))
+              }
               return(wait_sell)
             },
 
@@ -296,7 +309,9 @@ stock_acount <-
             show_holder_history = function(show_date)
             {
               if(!lubridate::is.Date(show_date))
-                Error("input should be Date")
+                stop("input should be Date")
+              if(private$acount_only)
+                return(data.frame())
               mapply(function(x) cbind(date = x, private$trade_history %>%
                                          filter(date < x) %>%
                                          group_by(code) %>%
@@ -308,6 +323,7 @@ stock_acount <-
             con = NULL,
             acount_f = 0,
             fee = 0.005,
+            acount_only = F,
             stock_holder = tibble(code = character(0), num = integer(0)),
             total_acount = data.frame(),
             ##用于储存交易日志
