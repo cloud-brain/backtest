@@ -18,6 +18,6 @@ find the next business day
 }
 \examples{
 x <- rep(20170101+ 1:2, 5)
-next_buz_day(x)
+next_buz_day(con, x)
 
 }

@@ -35,6 +35,7 @@ if_can_buy.default <- function(...)
 if_can_buy.tiny <- function(con, stocks, buz_day)
 {
   stopifnot(!is.null(buz_day))
+  buz_day <- ymd(buz_day)
   return(sqlQuery(con$con, sprintf("return buy_or_not(array(%s),%s);",
                                paste0("'",stocks,"'", collapse = ','),format(buz_day,'%Y%m%d'))))
 }
@@ -44,7 +45,7 @@ if_can_buy.tiny <- function(con, stocks, buz_day)
 if_can_buy.rdf <- function(con, stocks, buz_day, full = F)
 {
   stopifnot(!is.null(buz_day))
-
+  buz_day <- ymd(buz_day)
   if(full)
   {
     send_query <- sprintf("SELECT wind_code as code, canbuy FROM price_data where trade_dt = %s and wind_code in (%s) order by field(code,%s)",

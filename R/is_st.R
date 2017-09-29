@@ -36,6 +36,7 @@ is_st.default <- function(...)
 #' @export
 is_st.tiny <- function(con, stocks, buz_day)
 {
+  buz_day <- ymd(buz_day)
   return(sqlQuery(con, sprintf("return is_st(array(%s),%s);",
                                paste0("'",stocks,"'", collapse = ','),format(buz_day,'%Y%m%d'))))
 }
@@ -44,6 +45,7 @@ is_st.tiny <- function(con, stocks, buz_day)
 #' @export
 is_st.rdf <- function(con, stocks, buz_day)
 {
+  buz_day <- ymd(buz_day)
   if(full)
   {
     send_query <- sprintf("SELECT wind_code as code, isst FROM price_data where trade_dt = %s and wind_code in (%s) order by field(code,%s)",

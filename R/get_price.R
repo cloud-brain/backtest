@@ -37,14 +37,16 @@ get_price.default <- function(...)
 #' @export
 get_price.tiny <- function(con, stocks, buz_day,...)
 {
+  buz_day <- ymd(buz_day)
   return(sqlQuery(con, sprintf("return get_price(array(%s),%s,'vwap');",
-                               paste0("'",stocks,"'", collapse = ','),format(date,'%Y%m%d'))))
+                               paste0("'",stocks,"'", collapse = ','), format(buz_day,'%Y%m%d'))))
 }
 
 #' @rdname get_price
 #' @export
 get_price.rdf <- function(con, stocks, buz_day, type = 'close')
 {
+  buz_day <- ymd(buz_day)
   send_query <- sprintf("SELECT wind_code as code, %s as price FROM price_data where trade_dt = %s and wind_code in (%s) order by field(code,%s)",
                         switch(type, close = 's_adj_close', vwap = 's_adj_avgprice'),
                         format(buz_day,'%Y%m%d'),

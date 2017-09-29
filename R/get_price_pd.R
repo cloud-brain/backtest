@@ -37,6 +37,11 @@ get_price_pd.default <- function(...)
 #' @export
 get_price_pd.rdf <- function(con, stocks, begin_date, end_date)
 {
+  ##修正日期格式
+  begin_date <- ymd(begin_date)
+  end_date <- ymd(end_date)
+  
+  ##构造查询语句
   send_query <- sprintf("SELECT wind_code as code, trade_dt, s_adj_close as price FROM price_data where trade_dt between %s and %s and wind_code in (%s)",
                         format(begin_date,'%Y%m%d'),
                         format(end_date,'%Y%m%d'),

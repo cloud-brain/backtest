@@ -39,26 +39,31 @@ get_buz_day.default <- function(...)
 #' @export
 get_buz_day.tiny <- function(con, begin_date, end_date)
 {
+  begin_date <- ymd(begin_date)
+  end_date <- ymd(end_date)
+  
   if(begin_date > end_date)
     stop('begin date must less than end date')
-  begin_date <- ifelse(is.character(begin_date), begin_date %>% as.integer, begin_date)
-  end_date <- ifelse(is.character(end_date), end_date %>% as.integer, end_date)
-  return(sqlQuery(con, sprintf("return get_buz_day(%d,%d);",begin_date,end_date)))
+  
+  return(sqlQuery(con, sprintf("return get_buz_day(%s,%s);",
+                               format(begin_date, '%Y%m%d'), format(end_date, '%Y%m%d'))))
 }
 
 #' @rdname get_buz_day
 #' @export
 get_buz_day.rdf <- function(con, begin_date, end_date)
 {
+  begin_date <- ymd(begin_date)
+  end_date <- ymd(end_date)
+  
   if(begin_date > end_date)
     stop('begin date must less than end date')
-  begin_date <- ifelse(is.character(begin_date), begin_date %>% as.integer, begin_date)
-  end_date <- ifelse(is.character(end_date), end_date %>% as.integer, end_date)
+  
   if(class(con$con) == 'MySQLConnection')
   {
-    result <- dbGetQuery(con$con, paste0("SELECT trade_dt FROM calendar_data where trade_dt between ",begin_date, " and ", end_date, " order by trade_dt"))
+    result <- dbGetQuery(con$con, paste0("SELECT trade_dt FROM calendar_data where trade_dt between ", format(begin_date, '%Y%m%d'), " and ", format(end_date, '%Y%m%d'), " order by trade_dt"))
   }else{
-    result <- sqlQuery(con$con, paste0("SELECT trade_dt FROM calendar_data where trade_dt between ",begin_date, " and ", end_date, " order by trade_dt"))
+    result <- sqlQuery(con$con, paste0("SELECT trade_dt FROM calendar_data where trade_dt between ", format(begin_date, '%Y%m%d'), " and ", format(end_date, '%Y%m%d'), " order by trade_dt"))
   }
   return(result$trade_dt)
 }
