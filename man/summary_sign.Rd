@@ -4,7 +4,7 @@
 \alias{summary_sign}
 \title{Summary account with sign}
 \usage{
-summary_sign(date, yield, sign, fee = 0.005, plot = T, show_result = T)
+summary_sign(date, yield, sign, fee = 0.005, plot = T, relative = T)
 }
 \arguments{
 \item{date}{the date of the acount}
@@ -16,6 +16,8 @@ summary_sign(date, yield, sign, fee = 0.005, plot = T, show_result = T)
 \item{fee}{the fee when sell the stock}
 
 \item{plot}{plot or not}
+
+\item{relative}{if output relative yield or not}
 }
 \value{
 a data.frame with yield, win_loss, win_rate, max back by year. and these indicate for whole period

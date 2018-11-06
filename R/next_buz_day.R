@@ -14,7 +14,7 @@
 #'
 next_buz_day <- function(con, x, including = F)
 {
-  buz_day <- get_buz_day(con, min(x), max(x) + 10000)
+  buz_day <- get_buz_day(con, ymd(min(x)), ymd(max(x)) %m+% years(1))
   temp <- unique(x)
   if(including)
   {

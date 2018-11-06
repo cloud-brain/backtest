@@ -92,7 +92,7 @@ summary_acount <- function(total_acount, benchmark = F, ylog = T, plot = T, show
     ##修正为收益序列
     yield <- total_acount %>% mutate_at(vars(acount, benchmark), fun)
 
-    if(plot) PerformanceSummary_rel(as.xts(yield %>% select(acount, benchmark), order.by = yield$date), ylog = ylog, ...)
+    if(plot) PerformanceSummary_rel(as.xts(yield %>% select(account = acount, benchmark), order.by = yield$date), ylog = ylog, ...)
     output <- yield %>% 
       group_by(year = format(date, '%Y')) %>%
       summarise(yield = prod(1 + acount) - 1,
@@ -103,7 +103,7 @@ summary_acount <- function(total_acount, benchmark = F, ylog = T, plot = T, show
                 sharpratio_r = (prod(1 + acount - benchmark) - 1)/sd(acount - benchmark)/sqrt(n()))
   }else{
     yield <- total_acount %>% mutate(acount = fun(acount))
-    if(plot) charts.PerformanceSummary(as.xts(yield$acount, order.by = yield$date), ylog = ylog, ...)
+    if(plot) charts.PerformanceSummary(as.xts(yield %>% select(account = acount), order.by = yield$date), ylog = ylog, ...)
     output <- yield %>% 
       group_by(year = format(date, '%Y')) %>%
       summarise(yield = prod(1 + acount) - 1,
