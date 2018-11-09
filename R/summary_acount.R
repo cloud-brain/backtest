@@ -4,7 +4,6 @@
 #'
 #' @param total_acount dataframe, with column date, acount, if benchmark mod there must be a variable named benchmark. All acount should stardardize for 1 million initial amount
 #' @param benchmark logical, if relative mod or not
-#' @param ylog logical, set the y-axis to logarithmic scale, default FALSE
 #' @param plot logical, plot or not
 #' @param ... see details in \code{\link{charts.PerformanceSummary}}
 #'
@@ -41,58 +40,78 @@
 #' @export
 #'
 
-
-summary_acount <- function(total_acount, benchmark = F, ylog = T, plot = T, show_result = T, ...)
+summary_acount <- function(total_acount, benchmark = F, plot = T, show_result = T, ...)
 {
-
+  
   # ## change the net value to yield, with first acount value adjust
   fun <- function(x, begin_acount = 1000000) c(x[1]/begin_acount, x[-1]/x[-length(x)]) -1
-
   ## if benchmark = T, the get if relative mod
   if(benchmark)
   {
     stopifnot(c("acount","benchmark") %in% names(total_acount))
-    PerformanceSummary_rel <- function (R, ylog = FALSE, ...)
-    {
-      gap = 12; p = 0.95; geometric = TRUE; methods = "none"; Rf = 0; width = 0
-      legend.loc = "topleft"
-      begin = "first"
-      x = checkData(R)
-      colnames = colnames(x)
-      ncols = ncol(x)
-      length.column.one = length(x[, 1])
-      start.row = 1
-      start.index = 0
-      while (is.na(x[start.row, 1])) {
-        start.row = start.row + 1
-      }
-      x = x[start.row:length.column.one, ]
-      if (ncols > 1)
-        legend.loc = legend.loc
-      else legend.loc = NULL
-      wealth.index = ylog
-      op <- par(no.readonly = TRUE)
-      layout(matrix(c(1, 2, 3)), heights = c(2, 1, 1.3), widths = 1)
-      par(mar = c(1, 4, 4, 2))
-      chart.CumReturns(x, main = paste(colnames[1], "Performance", sep = " "), xaxis = FALSE, legend.loc = legend.loc,
-                       event.labels = NULL, ylog = ylog, wealth.index = wealth.index,
-                       begin = begin, geometric = geometric, ylab = "Cumulative Return",
-                       ...)
-      par(mar = c(1, 4, 0, 2))
-      chart.CumReturns(x[,1] - x[,2], main = "", xaxis = FALSE, legend.loc = NULL,
-                       event.labels = NULL, ylog = ylog, wealth.index = wealth.index,
-                       begin = begin, geometric = geometric, ylab = "rel cum Return",
-                       ...)
-      par(mar = c(5, 4, 0, 2))
-      chart.Drawdown(x[,1] - x[,2], geometric = geometric, main = "", ylab = "Drawdown",
-                     event.labels = NULL, ylog = FALSE, ...)
-      par(op)
-    }
-
+    
     ##修正为收益序列
     yield <- total_acount %>% mutate_at(vars(acount, benchmark), fun)
-
-    if(plot) PerformanceSummary_rel(as.xts(yield %>% select(account = acount, benchmark), order.by = yield$date), ylog = ylog, ...)
+    total_acount <- total_acount %>% mutate_at(vars(acount, benchmark), funs(./1000000))
+    if(plot) 
+    {
+      line_plot <-
+        ggplot() +
+        geom_line(data = total_acount %>% 
+                    transmute(date, acount, benchmark) %>%
+                    reshape2::melt(id = 'date'), 
+                  aes(x = date, y = value, color = variable), size = 1) + 
+        coord_trans(y = "log10") +
+        # scale_y_continuous(name = "return") +
+        theme(
+          legend.position = c(0, 1),
+          legend.justification = c("left", "top"),
+          legend.title = element_blank(),
+          legend.background = element_blank(),
+          axis.title = element_blank(),
+          axis.text.y = element_text(angle = 90, hjust = 1),
+          axis.text.x = element_blank(),
+          axis.ticks = element_blank()
+          # axis.title.y = element_text(size = rel(0.8))
+        ) 
+      
+      relative_plot <- yield %>% 
+        mutate(acount = cumprod(1+acount- benchmark)) %>% 
+        ggplot(aes(x = date, y = acount)) +
+        geom_line(size = 1) +
+        # scale_y_continuous(name = "drawdowm") +
+        theme(
+          axis.text.y = element_text(angle = 90, hjust = 1),
+          axis.text.x = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank()
+          # axis.title.y = element_text(size = rel(0.8))
+        )
+      
+      max_back_plot <-
+        yield %>% mutate(acount = 1 + cumprod(1+acount- benchmark)) %>% 
+        mutate(max_back = 100 * (acount - cummax(acount))/cummax(acount)) %>%
+        ggplot(aes(
+          x = date, y = max_back
+        )) +
+        geom_line() +
+        # scale_y_continuous(name = "signbar") +
+        theme(
+          legend.position = 'none',
+          axis.title = element_blank(),
+          axis.text.y = element_text(angle = 90, hjust = 1)
+          # axis.title.y = element_text(size = rel(0.8))
+        ) 
+      
+      grid.newpage()
+      vp.line <- viewport(x=0, y=0.66, width=1, height=0.33, just=c("left", "bottom"))
+      vp.rel <- viewport(x=0, y=0.33, width=1, height=0.33, just=c("left", "bottom"))
+      vp.maxback <- viewport(x=0, y=0, width=1, height=0.33, just=c("left", "bottom"))
+      # vp.scatter <- viewport(x=0, y=0, width=0.66, height=0.66, just=c("left", "bottom"))
+      print(line_plot, vp = vp.line)
+      print(relative_plot, vp = vp.rel)
+      print(max_back_plot, vp = vp.maxback)
+    }
     output <- yield %>% 
       group_by(year = format(date, '%Y')) %>%
       summarise(yield = prod(1 + acount) - 1,
@@ -103,7 +122,59 @@ summary_acount <- function(total_acount, benchmark = F, ylog = T, plot = T, show
                 sharpratio_r = (prod(1 + acount - benchmark) - 1)/sd(acount - benchmark)/sqrt(n()))
   }else{
     yield <- total_acount %>% mutate(acount = fun(acount))
-    if(plot) charts.PerformanceSummary(as.xts(yield %>% select(account = acount), order.by = yield$date), ylog = ylog, ...)
+    total_acount <- total_acount %>% mutate(acount = acount / 1000000)
+    
+    if(plot)
+    {
+      line_plot <-
+        total_acount %>% ggplot(aes(x = date, y = acount)) +
+        geom_line(size = 1) + 
+        coord_trans(y = "log10") +
+        # scale_y_continuous(name = "return") +
+        theme(
+          axis.title = element_blank(),
+          axis.text.y = element_text(angle = 90, hjust = 1),
+          axis.text.x = element_blank(),
+          axis.ticks = element_blank()
+          # axis.title.y = element_text(size = rel(0.8))
+        ) 
+      
+      relative_plot <- yield %>% 
+        ggplot(aes(x = date, y = acount)) +
+        geom_bar(stat = 'identity') + 
+        # scale_y_continuous(name = "drawdowm") +
+        theme(
+          axis.text.y = element_text(angle = 90, hjust = 1),
+          axis.text.x = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank()
+          # axis.title.y = element_text(size = rel(0.8))
+        )
+      
+      max_back_plot <-
+        total_acount %>%
+        mutate(max_back = 100 * (acount - cummax(acount))/cummax(acount)) %>%
+        ggplot(aes(
+          x = date, y = max_back
+        )) +
+        geom_line() +
+        # scale_y_continuous(name = "signbar") +
+        theme(
+          legend.position = 'none',
+          axis.title = element_blank(),
+          axis.text.y = element_text(angle = 90, hjust = 1)
+          # axis.title.y = element_text(size = rel(0.8))
+        ) 
+      
+      grid.newpage()
+      vp.line <- viewport(x=0, y=0.66, width=1, height=0.33, just=c("left", "bottom"))
+      vp.rel <- viewport(x=0, y=0.33, width=1, height=0.33, just=c("left", "bottom"))
+      vp.maxback <- viewport(x=0, y=0, width=1, height=0.33, just=c("left", "bottom"))
+      # vp.scatter <- viewport(x=0, y=0, width=0.66, height=0.66, just=c("left", "bottom"))
+      print(line_plot, vp = vp.line)
+      print(relative_plot, vp = vp.rel)
+      print(max_back_plot, vp = vp.maxback)
+    }
     output <- yield %>% 
       group_by(year = format(date, '%Y')) %>%
       summarise(yield = prod(1 + acount) - 1,
