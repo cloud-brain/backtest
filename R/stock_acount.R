@@ -170,7 +170,6 @@ stock_acount <-
               }
             },
 
-
             ##卖出到指定的支持，涉及卖出，因此仅接受权重
             ##amount为all是全部卖出
             order_to = function(date, stock, weight, amount = 'all')

@@ -1,9 +1,9 @@
-#' Get stock price for one day
+#' Get future price for one day
 #'
-#' Get stock price for one day
+#' Get future price for one day
 #'
-#' @param con a data connection
-#' @param stocks vecter of stock code list in data format
+#' @param con a tiny connection
+#' @param stocks vecter of stock code list in tiny format
 #' @param buz_day integer or character format like \%Y\%m\%d, test for this day
 #' @param type choose price type as close, vwap
 #'
