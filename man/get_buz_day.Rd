@@ -7,34 +7,33 @@
 \alias{get_buz_day.rdf}
 \title{Get business day}
 \usage{
-get_buz_day(...)
+get_buz_day(con, beg_dt, end_dt, ...)
 
 \method{get_buz_day}{default}(...)
 
-\method{get_buz_day}{tiny}(con, begin_date, end_date)
+\method{get_buz_day}{tiny}(con, beg_dt, end_dt)
 
-\method{get_buz_day}{rdf}(con, begin_date, end_date)
+\method{get_buz_day}{rdf}(con, beg_dt, end_dt)
 }
 \arguments{
-\item{con}{a tiny connection}
+\item{con}{a connection}
 
-\item{begin_date}{the begin date, can be integer or character format like \%Y\%m\%d}
+\item{beg_dt}{the begin date, can be integer or character format like \%Y\%m\%d}
 
-\item{end_date}{the end date, can be integer or character format like \%Y\%m\%d}
+\item{end_dt}{the end date, can be integer or character format like \%Y\%m\%d}
 }
 \value{
 a vector of date
 }
 \description{
-Get business day of stock market bewteen tow days
+Get business day of stock market bewteen two days
 }
 \details{
-The connenction only support tiny. The begin date and end date should not be the business day.
+The begin date and end date should not be the business day.
 The return vector will begin at the first business day after begin date.
 }
 \examples{
 \dontrun{
-con <- odbcConnect('tiny')
 get_buz_day(con, 20100101, 20110101)
 }
 

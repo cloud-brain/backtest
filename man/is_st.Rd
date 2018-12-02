@@ -2,23 +2,14 @@
 % Please edit documentation in R/is_st.R
 \name{is_st}
 \alias{is_st}
-\alias{is_st.default}
-\alias{is_st.tiny}
-\alias{is_st.rdf}
 \title{Test if the stock is st or not}
 \usage{
-is_st(...)
-
-\method{is_st}{default}(...)
-
-\method{is_st}{tiny}(con, stocks, buz_day)
-
-\method{is_st}{rdf}(con, stocks, buz_day)
+is_st(con, wind_code, buz_day, ...)
 }
 \arguments{
 \item{con}{a tiny connection}
 
-\item{stocks}{vecter of stock code list in tiny format}
+\item{wind_code}{vecter of future code list in wind_code format}
 
 \item{buz_day}{integer or character format like \%Y\%m\%d, test for this day}
 }
@@ -30,8 +21,7 @@ Test if the stock is st or not at business day
 }
 \examples{
 \dontrun{
-con <- odbcConnect('tiny')
-is_st(con, c('SH600000','SZ000001'), 20110104)
+is_st(con, c('600000.SH','000001.SH'), 20110104)
 }
 
 }

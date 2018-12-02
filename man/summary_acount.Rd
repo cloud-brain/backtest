@@ -4,15 +4,13 @@
 \alias{summary_acount}
 \title{Summary the acount performance}
 \usage{
-summary_acount(total_acount, benchmark = F, ylog = T, plot = T,
+summary_acount(total_acount, benchmark = F, plot = T,
   show_result = T, ...)
 }
 \arguments{
 \item{total_acount}{dataframe, with column date, acount, if benchmark mod there must be a variable named benchmark. All acount should stardardize for 1 million initial amount}
 
 \item{benchmark}{logical, if relative mod or not}
-
-\item{ylog}{logical, set the y-axis to logarithmic scale, default FALSE}
 
 \item{plot}{logical, plot or not}
 

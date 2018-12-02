@@ -3,7 +3,7 @@
 #' Test if the stock is st or not at business day
 #'
 #' @param con a tiny connection
-#' @param stocks vecter of stock code list in tiny format
+#' @param wind_code vecter of future code list in wind_code format
 #' @param buz_day integer or character format like \%Y\%m\%d, test for this day
 #'
 #' @return
@@ -11,57 +11,37 @@
 #'
 #' @examples
 #' \dontrun{
-#' con <- odbcConnect('tiny')
-#' is_st(con, c('SH600000','SZ000001'), 20110104)
+#' is_st(con, c('600000.SH','000001.SH'), 20110104)
 #' }
 #'
-#' @importFrom RODBC sqlQuery
 #' @importFrom DBI dbGetQuery
 #'
 #' @export
 #'
-is_st <- function(...)
-{
-  UseMethod('is_st')
-}
+is_st <- function(con, wind_code, buz_day, ...) UseMethod('is_st')
 
-#' @rdname is_st
 #' @export
-is_st.default <- function(...)
-{
-  return('unknown con type')
-}
+is_st.default <- function() return('unknown con type')
 
-#' @rdname is_st
-#' @export
-is_st.tiny <- function(con, stocks, buz_day)
-{
-  buz_day <- ymd(buz_day)
-  return(sqlQuery(con, sprintf("return is_st(array(%s),%s);",
-                               paste0("'",stocks,"'", collapse = ','),format(buz_day,'%Y%m%d'))))
-}
+is_st.tiny <- function(con, wind_code, buz_day) {}
 
-#' @rdname is_st
 #' @export
-is_st.rdf <- function(con, stocks, buz_day)
+is_st.rdf <- function(con, wind_code, buz_day)
 {
-  buz_day <- ymd(buz_day)
+  buz_day <- dt_to_char(buz_day)
   if(full)
   {
     send_query <- sprintf("SELECT wind_code as code, isst FROM price_data where trade_dt = %s and wind_code in (%s) order by field(code,%s)",
-                          format(buz_day,'%Y%m%d'),
-                          paste0("'",stocks,"'", collapse = ','),
-                          paste0("'",stocks,"'", collapse = ','))
+                          buz_day, comb_char(wind_code), comb_char(wind_code))
   }else{
     send_query <- sprintf("SELECT wind_code as code FROM price_data where trade_dt = %s and isst = 0 and wind_code in (%s)",
-                          format(buz_day,'%Y%m%d'), paste0("'",stocks,"'", collapse = ','))
+                          buz_day, comb_char(wind_code))
   }
-  if(class(con$con) == 'MySQLConnection')
-  {
-    result <- dbGetQuery(con$con, send_query)
-  }else{
-    result <- sqlQuery(con$con, send_query)
-  }
+  result <- dbGetQuery(con$con, send_query)
+  
+  if(nrow(result) != length(wind_code))
+    stop(sprintf('%s is not in database on %s', paste0(setdiff(wind_code, result$code), collapse = ','), format(buz_day,'%Y%m%d')))
+  
   if(full)
   {
     return(result)

@@ -2,23 +2,14 @@
 % Please edit documentation in R/if_can_buy.R
 \name{if_can_buy}
 \alias{if_can_buy}
-\alias{if_can_buy.default}
-\alias{if_can_buy.tiny}
-\alias{if_can_buy.rdf}
 \title{Test if the stock can buy}
 \usage{
-if_can_buy(...)
-
-\method{if_can_buy}{default}(...)
-
-\method{if_can_buy}{tiny}(con, stocks, buz_day)
-
-\method{if_can_buy}{rdf}(con, stocks, buz_day, full = F)
+if_can_buy(con, wind_code, buz_day, ...)
 }
 \arguments{
 \item{con}{a tiny connection}
 
-\item{stocks}{vecter of stock code list in tiny format}
+\item{wind_code}{vecter of future code list in wind_code format}
 
 \item{buz_day}{int or char, format like \%Y\%m\%d, test for this day}
 }
@@ -33,7 +24,7 @@ if the amount equal to 0 or high price equal to low price, the stock regards can
 }
 \examples{
 \dontrun{
-con <- odbcConnect('tiny')
-if_can_buy(con, c('SH600000','SZ000001'), 20110104)
+if_can_buy(con, c('600000.SH','000001.SH'), 20110104)
 }
+
 }

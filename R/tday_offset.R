@@ -13,17 +13,17 @@
 #'
 tday_offset <- function(con, buz_day, offset = 0)
 {
-  buz_day <- ymd(buz_day)
+  buz_day <- dt_to_char(buz_day)
   
   if(offset == 0)
   {
-    return(buz_day %>% format('%Y%m%d') %>% as.integer)
+    return(as.integer(buz_day))
   }else{
     if(offset > 0)
     {
-      result <- dbGetQuery(con$con, sprintf("SELECT trade_dt FROM calendar_data where trade_dt > %s order by trade_dt limit %d", format(buz_day, '%Y%m%d'), offset))
+      result <- dbGetQuery(con$con, sprintf("SELECT trade_dt FROM calendar_data where trade_dt > %s order by trade_dt limit %d", buz_day, offset))
     }else{
-      result <- dbGetQuery(con$con, sprintf("SELECT trade_dt FROM calendar_data where trade_dt < %s order by trade_dt desc limit %d", format(buz_day, '%Y%m%d'), abs(offset)))
+      result <- dbGetQuery(con$con, sprintf("SELECT trade_dt FROM calendar_data where trade_dt < %s order by trade_dt desc limit %d", buz_day, abs(offset)))
     }
   }
   return(result$trade_dt %>% tail(1))

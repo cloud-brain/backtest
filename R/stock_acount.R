@@ -273,7 +273,7 @@ stock_acount <-
                 ##当持仓时计算持仓市值
                 if(nrow(private$stock_holder)>0)
                 {
-                  close_price <- get_price_pd(private$con, private$stock_holder$code, min(date), max(date))
+                  close_price <- get_price(private$con, private$stock_holder$code, min(date), max(date))
                   asset_price <- left_join(close_price, private$stock_holder, by = 'code') %>%
                     mutate(asset_v = price * num) %>% group_by(date = ymd(trade_dt)) %>%
                     summarise(acount = sum(asset_v) + private$acount_f)
