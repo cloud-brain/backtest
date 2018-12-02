@@ -3,64 +3,74 @@
 #' Get stock price for one day
 #'
 #' @param con a data connection
-#' @param stocks vecter of stock code list in data format
-#' @param buz_day integer or character format like \%Y\%m\%d, test for this day
+#' @param wind_code vecter of future code list in wind_code format
+#' @param beg_dt int or or char, format like \%Y\%m\%d, test for this day
+#' @param end_dt int or or char, format like \%Y\%m\%d, test for this day, default null
 #' @param type choose price type as close, vwap
 #'
 #' @return
-#' a data.frame with stock code and price, trade_dt
+#' if end_date is null
+#' a df with stock code and price
+#' else
+#' a df with stock code and price, trade_dt
 #'
 #' @examples
 #' \dontrun{
-#' con <- odbcConnect('tiny')
-#' get_price(con, c('SH600000','SZ000001'), 20110104)
+#' get_price(con, c('600000.SH','000001.SH'), 20110104, type = 'close')
 #' }
 #'
-#' @importFrom RODBC sqlQuery
 #' @importFrom DBI dbGetQuery
 #'
 #' @export
 #'
-get_price <- function(...)
+get_price <- function(con, wind_code, beg_dt, end_dt = NULL)
 {
   UseMethod('get_price')
 }
 
 #' @rdname get_price
-#' @export
-get_price.default <- function(...)
+get_price.default <- function()
 {
   stop('unknown con type')
 }
 
 #' @rdname get_price
-#' @export
-get_price.tiny <- function(con, stocks, buz_day,...)
+get_price.tiny <- function()
 {
-  buz_day <- ymd(buz_day)
-  return(sqlQuery(con, sprintf("return get_price(array(%s),%s,'vwap');",
-                               paste0("'",stocks,"'", collapse = ','), format(buz_day,'%Y%m%d'))))
+  
 }
 
 #' @rdname get_price
-#' @export
-get_price.rdf <- function(con, stocks, buz_day, type = 'close')
+get_price.rdf <- function(con, stocks, beg_dt, end_dt = NULL, type = 'close')
 {
-  buz_day <- ymd(buz_day)
-  send_query <- sprintf("SELECT wind_code as code, %s as price FROM price_data where trade_dt = %s and wind_code in (%s) order by field(code,%s)",
-                        switch(type, close = 's_adj_close', vwap = 's_adj_avgprice'),
-                        format(buz_day,'%Y%m%d'),
-                        paste0("'",stocks,"'", collapse = ','),
-                        paste0("'",stocks,"'", collapse = ','))
-  if(class(con$con) == 'MySQLConnection')
+  beg_dt <- dt_to_char(beg_dt[1])
+  end_dt <- dt_to_char(end_dt[1])
+  
+  if(is.null(end_dt))
   {
-    result <- dbGetQuery(con$con, send_query)
+    send_query <- sprintf("SELECT wind_code as code, %s as price FROM price_data where trade_dt = %s and wind_code in (%s) order by field(code,%s)",
+                          switch(type, close = 's_adj_close', vwap = 's_adj_avgprice'),
+                          beg_dt, comb_char(stocks), comb_char(stocks))
   }else{
-    result <- sqlQuery(con$con, send_query)
+    send_query <- sprintf("SELECT wind_code as code, trade_dt, s_adj_close as price FROM price_data where trade_dt between %s and %s and wind_code in (%s)",
+                          beg_dt, end_dt, comb_char(stocks))
   }
-  if(nrow(result) != length(stocks))
+
+  result <- dbGetQuery(con$con, send_query)
+  
+  if(is.null(end_dt))
   {
-    stop(sprintf('%s is not in database on %s', paste0(setdiff(stocks, result$code), collapse = ','), format(buz_day, '%Y%m%d')))
+    if(nrow(result) != length(stocks))
+    {
+      stop(sprintf('%s is not in database on %s', paste0(setdiff(stocks, result$code), collapse = ','), format(buz_day, '%Y%m%d')))
+    }
+  }else{
+    error_test <- result %>% count(code) %>% filter(n < max(n))
+    if(nrow(error_test) > 0)
+    {
+      stop(sprintf('%s is not in database', paste0(error_test$code, collapse = ',')))
+    }
   }
+
   return(result)
 }

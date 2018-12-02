@@ -3,8 +3,8 @@
 #' Get future price for one day
 #'
 #' @param con a tiny connection
-#' @param stocks vecter of stock code list in tiny format
-#' @param buz_day integer or character format like \%Y\%m\%d, test for this day
+#' @param wind_code vecter of future code list in wind_code format
+#' @param buz_day format can be detect by lubridate
 #' @param type choose price type as close, vwap
 #'
 #' @return
@@ -21,46 +21,43 @@
 #'
 #' @export
 #'
-get_price <- function(...)
+get_price_future <- function(...)
 {
   UseMethod('get_price')
 }
 
-#' @rdname get_price
-#' @export
-get_price.default <- function(...)
+#' @rdname get_price_future
+get_price_future.default <- function(...)
 {
   stop('unknown con type')
 }
 
-#' @rdname get_price
-#' @export
-get_price.tiny <- function(con, stocks, buz_day,...)
+#' @rdname get_price_future
+get_price_future.tiny <- function(con, wind_code, buz_day,...)
 {
   buz_day <- ymd(buz_day)
   return(sqlQuery(con, sprintf("return get_price(array(%s),%s,'vwap');",
-                               paste0("'",stocks,"'", collapse = ','), format(buz_day,'%Y%m%d'))))
+                               paste0("'",wind_code,"'", collapse = ','), format(buz_day,'%Y%m%d'))))
 }
 
 #' @rdname get_price
-#' @export
-get_price.rdf <- function(con, stocks, buz_day, type = 'close')
+get_price_future.rdf <- function(con, wind_code, buz_day, type = 'close')
 {
   buz_day <- ymd(buz_day)
   send_query <- sprintf("SELECT wind_code as code, %s as price FROM price_data where trade_dt = %s and wind_code in (%s) order by field(code,%s)",
-                        switch(type, close = 's_adj_close', vwap = 's_adj_avgprice'),
+                        switch(type, close = 's_dq_settle', vwap = 's_dq_avgprice'),
                         format(buz_day,'%Y%m%d'),
-                        paste0("'",stocks,"'", collapse = ','),
-                        paste0("'",stocks,"'", collapse = ','))
+                        paste0("'",wind_code,"'", collapse = ','),
+                        paste0("'",wind_code,"'", collapse = ','))
   if(class(con$con) == 'MySQLConnection')
   {
     result <- dbGetQuery(con$con, send_query)
   }else{
     result <- sqlQuery(con$con, send_query)
   }
-  if(nrow(result) != length(stocks))
+  if(nrow(result) != length(wind_code))
   {
-    stop(sprintf('%s is not in database on %s', paste0(setdiff(stocks, result$code), collapse = ','), format(buz_day, '%Y%m%d')))
+    stop(sprintf('%s is not in database on %s', paste0(setdiff(wind_code, result$code), collapse = ','), format(buz_day, '%Y%m%d')))
   }
   return(result)
 }

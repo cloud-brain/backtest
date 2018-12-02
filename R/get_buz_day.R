@@ -1,12 +1,12 @@
 #' Get business day
 #'
-#' Get business day of stock market bewteen tow days
+#' Get business day of stock market bewteen two days
 #'
-#' @param con a tiny connection
-#' @param begin_date the begin date, can be integer or character format like \%Y\%m\%d
-#' @param end_date the end date, can be integer or character format like \%Y\%m\%d
+#' @param con a connection
+#' @param beg_dt the begin date, can be integer or character format like \%Y\%m\%d
+#' @param end_dt the end date, can be integer or character format like \%Y\%m\%d
 #' @details
-#' The connenction only support tiny. The begin date and end date should not be the business day.
+#' The begin date and end date should not be the business day.
 #' The return vector will begin at the first business day after begin date.
 #'
 #' @return
@@ -14,56 +14,47 @@
 #'
 #' @examples
 #' \dontrun{
-#' con <- odbcConnect('tiny')
 #' get_buz_day(con, 20100101, 20110101)
 #' }
 #'
-#' @import dplyr
-#' @importFrom RODBC sqlQuery
+#' @import lubridate
 #' @importFrom DBI dbGetQuery
 #' @export
 #'
-get_buz_day <- function(...)
+get_buz_day <- function(con, beg_dt, end_dt, ...)
 {
   UseMethod('get_buz_day')
 }
 
 #' @rdname get_buz_day
-#' @export
 get_buz_day.default <- function(...)
 {
   return('unknown type')
 }
 
 #' @rdname get_buz_day
-#' @export
-get_buz_day.tiny <- function(con, begin_date, end_date)
+get_buz_day.tiny <- function(con, beg_dt, end_dt)
 {
-  begin_date <- ymd(begin_date)
-  end_date <- ymd(end_date)
+  beg_dt <- ymd(beg_dt)
+  end_dt <- ymd(end_dt)
   
-  if(begin_date > end_date)
+  if(beg_dt > end_dt)
     stop('begin date must less than end date')
   
   return(sqlQuery(con, sprintf("return get_buz_day(%s,%s);",
-                               format(begin_date, '%Y%m%d'), format(end_date, '%Y%m%d'))))
+                               format(beg_dt, '%Y%m%d'), format(end_dt, '%Y%m%d'))))
 }
 
 #' @rdname get_buz_day
-#' @export
-get_buz_day.rdf <- function(con, begin_date, end_date)
+get_buz_day.rdf <- function(con, beg_dt, end_dt)
 {
-  begin_date <- ymd(begin_date)
-  end_date <- ymd(end_date)
+  beg_dt <- dt_to_char(beg_dt[1])
+  end_dt <- dt_to_char(end_dt[1])
   
-  if(begin_date > end_date)
+  if(beg_dt > end_dt)
     stop('begin date must less than end date')
   
-  if(class(con$con) == 'MySQLConnection')
-  {
-    result <- dbGetQuery(con$con, paste0("SELECT trade_dt FROM calendar_data where trade_dt between ", format(begin_date, '%Y%m%d'), " and ", format(end_date, '%Y%m%d'), " order by trade_dt"))
-  }else{
-    result <- sqlQuery(con$con, paste0("SELECT trade_dt FROM calendar_data where trade_dt between ", format(begin_date, '%Y%m%d'), " and ", format(end_date, '%Y%m%d'), " order by trade_dt"))
-  }
+  sql_char <- sprintf("SELECT trade_dt FROM calendar_data where trade_dt between %s and %s order by trade_dt", format(beg_dt, '%Y%m%d'), format(end_dt, '%Y%m%d'))
+  result <- dbGetQuery(con$con, sql_char)
   return(result$trade_dt)
 }
