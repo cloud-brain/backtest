@@ -31,7 +31,7 @@ get_price_future <- function(con, wind_code, beg_dt, end_dt, type, balance,...)
 }
 
 #' @export
-get_price_future.default <- function(con, wind_code, beg_) stop('unknown con type')
+get_price_future.default <- function(con, wind_code, beg_dt) stop('unknown con type')
 
 get_price_future.tiny <- function(con, wind_code, beg_dt, end_dt) {}
 
@@ -43,11 +43,11 @@ get_price_future.rdf <- function(con, wind_code, beg_dt, end_dt = NULL, type = '
   
   if(is.null(end_dt))
   {
-    send_query <- sprintf("SELECT wind_code as code, %s as price FROM price_data_future where trade_dt = %s and wind_code in (%s) order by field(code,%s)",
+    send_query <- sprintf("SELECT wind_code as code, %s as price FROM price_base_future where trade_dt = %s and wind_code in (%s) order by field(code,%s)",
                           switch(type, close = 's_dq_settle', vwap = 's_dq_avgprice'),
                           beg_dt, comb_char(wind_code), comb_char(wind_code))
   }else{
-    send_query <- sprintf("SELECT wind_code as code, trade_dt, s_dq_settle as price FROM price_data_future where trade_dt between %s and %s and wind_code in (%s)",
+    send_query <- sprintf("SELECT wind_code as code, trade_dt, s_dq_settle as price FROM price_base_future where trade_dt between %s and %s and wind_code in (%s)",
                           beg_dt, end_dt, comb_char(wind_code))
   }
   

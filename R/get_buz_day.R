@@ -54,7 +54,8 @@ get_buz_day.rdf <- function(con, beg_dt, end_dt)
   if(beg_dt > end_dt)
     stop('begin date must less than end date')
   
-  sql_char <- sprintf("SELECT trade_dt FROM calendar_data where trade_dt between %s and %s order by trade_dt", format(beg_dt, '%Y%m%d'), format(end_dt, '%Y%m%d'))
+  sql_char <- sprintf("SELECT trade_dt FROM calendar_data where trade_dt between %s and %s order by trade_dt", 
+                      beg_dt, end_dt)
   result <- dbGetQuery(con$con, sql_char)
   return(result$trade_dt)
 }

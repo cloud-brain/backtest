@@ -20,6 +20,7 @@
 #'
 #' @param con connection for data
 #' @param fee float, the fee you sold stock
+#' @param acount_f int, initial acount value, default 1m
 #' @param date date, the date you alter you stock acount
 #' @param stock vector, the stock you buy or sell
 #' @param num vector, the stock vol you buy or sell
@@ -52,7 +53,6 @@
 #'
 #' @examples
 #' \dontrun{
-#' con <- odbcConnect('tiny')
 #' my_acount <- stock_acount$new(con = con)
 #' my_acount$order_buy(as.Date('2015-01-04'), stock = '600000.SH',num = 1000)
 #' my_acount$acount_update(as.Date('2015-01-04'))
@@ -64,8 +64,7 @@
 #' @keywords data
 #' @export
 #' @importFrom R6 R6Class
-#' @import dplyr tibble
-#' @importFrom RODBC sqlQuery
+#' @import tidyverse
 #' @importFrom DBI dbGetQuery
 
 
@@ -74,10 +73,10 @@
 stock_acount <-
   R6Class("stock_acount",
           public = list(
-            initialize = function(con, fee = 0.005, acount_only = F)
+            initialize = function(con, fee = 0.005, acount_f = 1000000, acount_only = F)
             {
               private$con <- con
-              private$acount_f <- 1000000
+              private$acount_f <- acount_f
               private$fee <- fee
               private$acount_only <- acount_only
             },
@@ -142,7 +141,7 @@ stock_acount <-
             },
 
             ##卖出函数（仅支持数量）
-            ##卖出函数不提出无法卖出股票
+            ##卖出金额计算较复杂，容易错误
             order_sell = function(date, stock, num = NULL)
             {
 
@@ -154,7 +153,7 @@ stock_acount <-
                                   price = sell_price$price)
 
               ##更新账户净值
-              private$acount_f <- with(sell_stock, sum(price * num)) * (1 - private$fee) + private$acount_f
+              private$acount_f <- sum(sell_stock$price * sell_stock$num) * (1 - private$fee) + private$acount_f
 
               ##修正持仓数据
               private$stock_holder <- stock_combine(private$stock_holder, sell_stock, type = 'sub') %>% filter(num != 0)
@@ -339,6 +338,7 @@ stock_combine <- function(stock_old, stock_chg, type = c('add','sub'), add_price
   temp <- temp %>% mutate(num = ifelse(is.na(num), 0, num) + type * ifelse(is.na(num_d), 0, num_d))
   if(add_price)
   {
+    if(!'price' %in% names(stock_old)) stop('need price in input data')
     return(temp %>% mutate(price = ifelse(is.na(price.x), price.y, price.x)) %>% select(code, num, price))
   }else{
     return(temp %>% select(code, num))

@@ -10,8 +10,6 @@ Depends: dplyr, tibble, lubridate
 Maintainer: Lao Kaijun <cloud_brain@qq.com>
 Imports:
     R6,
-    PerformanceAnalytics,
-    RODBC,
     stargazer,
     DBI,
     RMySQL,

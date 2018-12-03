@@ -15,3 +15,7 @@ comb_char <- function(x)
   paste0("'",x,"'", collapse = ',')
 }
 
+fill_na <- function(x, fill = 0)
+{
+  ifelse(is.na(x), fill, x)
+}
