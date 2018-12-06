@@ -147,7 +147,8 @@ future_acount <-
                 return(NULL)
               }
               target_pf <- tibble(code = stock, num = num, type = type)
-              stock_buy <- stock_combine(target_pf, private$future_holder %>% mutate(num = -1 * num))
+              stock_buy <- full_join(target_pf, private$future_holder, by = c('code', 'type'), all = T) %>% 
+                transmute(code, num = num.x - num.y, type) %>% subset(num != 0)
               self$order_trade(date, stock_buy$code, num = stock_buy$num, stock_buy$type)
             },
             
@@ -223,9 +224,9 @@ future_acount <-
                 return(data.frame())
               mapply(function(x) cbind(date = x, private$trade_history %>%
                                          filter(date < x) %>%
-                                         group_by(code) %>%
-                                         summarise(num = sum(num * type)) %>%
-                                         filter(num >0)), show_date, SIMPLIFY = F) %>% do.call('rbind', .)
+                                         group_by(code, type) %>%
+                                         summarise(num = sum(num)) %>%
+                                         filter(num !=0)), show_date, SIMPLIFY = F) %>% do.call('rbind', .)
             }
           ),
           private = list(
@@ -246,7 +247,7 @@ future_acount <-
 future_combine <- function(stock_old, stock_chg)
 {
   if(is.null(stock_old))
-    return(temp %>% mutate(init_value = num * price))
+    return(stock_chg %>% mutate(init_value = num * price) %>% select(code, num, type, init_value, deposit_rate))
   temp <- full_join(stock_old, stock_chg %>% rename(num_d = num), by = c('code', 'type'), all = T)
   temp <- temp %>% mutate(num = fill_na(num) + fill_na(num_d),
                           init_value = fill_na(init_value) + fill_na(price * num_d),
@@ -255,5 +256,3 @@ future_combine <- function(stock_old, stock_chg)
   return(temp %>% select(code, num, type, init_value, deposit_rate))
 }
 
-stock_old <- private$future_holder
-stock_chg <- stock_buy
