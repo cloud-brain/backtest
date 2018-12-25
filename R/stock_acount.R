@@ -212,7 +212,7 @@ stock_acount <-
                 
                 ##第二次确定可用金额
                 acount_total <- private$acount_f + with(stock_now, sum(num * price)) +
-                  0.005 * with(stock_sell, sum(num * price))
+                  fee * with(stock_sell, sum(num * price))
                 
                 ##修正目标持仓和卖出量
                 stock_target <- stock_target %>% mutate(num = acount_total * weight / price)
@@ -222,7 +222,7 @@ stock_acount <-
                 
                 ##修正剩余资金
                 private$acount_f <- private$acount_f +
-                  0.995 * with(stock_sell, sum(-num * price)) - with(stock_buy, sum(num * price))
+                  (1 - fee) * with(stock_sell, sum(-num * price)) - with(stock_buy, sum(num * price))
                 
               }else{
                 #确定目标持仓
@@ -311,9 +311,9 @@ stock_acount <-
               if(private$acount_only)
                 return(data.frame())
               mapply(function(x) cbind(date = x, private$trade_history %>%
-                                         filter(date < x) %>%
+                                         filter(date <= x) %>%
                                          group_by(code) %>%
-                                         summarise(num = sum(num * type)) %>%
+                                         summarise(num = sum(num)) %>%
                                          filter(num >0)), show_date, SIMPLIFY = F) %>% do.call('rbind', .)
             }
           ),
