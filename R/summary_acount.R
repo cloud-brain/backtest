@@ -33,7 +33,7 @@
 #' data(m_index_acount)
 #' summary_acount(m_index_acount, benchmark = FALSE)
 #'
-#' @import dplyr PerformanceAnalytics
+#' @import dplyr grid
 #' @importFrom xts as.xts
 #' @importFrom stargazer stargazer
 #'

@@ -15,7 +15,7 @@
 #' @return
 #' a data.frame with yield, win_loss, win_rate, max back by year. and these indicate for whole period
 #'
-#' @import dplyr
+#' @import dplyr grid
 #' @export
 
 summary_sign <- function(date, yield, sign, fee = 0.005, plot = T, relative = T)

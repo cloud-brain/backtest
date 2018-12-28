@@ -212,7 +212,7 @@ stock_acount <-
                 
                 ##第二次确定可用金额
                 acount_total <- private$acount_f + with(stock_now, sum(num * price)) +
-                  fee * with(stock_sell, sum(num * price))
+                  private$fee * with(stock_sell, sum(num * price))
                 
                 ##修正目标持仓和卖出量
                 stock_target <- stock_target %>% mutate(num = acount_total * weight / price)
@@ -222,7 +222,7 @@ stock_acount <-
                 
                 ##修正剩余资金
                 private$acount_f <- private$acount_f +
-                  (1 - fee) * with(stock_sell, sum(-num * price)) - with(stock_buy, sum(num * price))
+                  (1 - private$fee) * with(stock_sell, sum(-num * price)) - with(stock_buy, sum(num * price))
                 
               }else{
                 #确定目标持仓
@@ -245,9 +245,16 @@ stock_acount <-
               
               if(!private$acount_only)
               {
-                private$trade_history <- rbind(private$trade_history,
-                                               cbind(stock_sell, date = date, type = -1),
-                                               cbind(stock_buy, date = date, type = 1))
+                if(nrow(stock_sell) !=0)
+                {
+                  private$trade_history <- rbind(private$trade_history,
+                                                 cbind(stock_sell, date = date, type = -1))
+                }
+                if(nrow(stock_buy) !=0)
+                {
+                  private$trade_history <- rbind(private$trade_history,
+                                                 cbind(stock_buy, date = date, type = 1))
+                }
               }
               return(wait_sell)
             },

@@ -2,18 +2,9 @@
 % Please edit documentation in R/get_buz_day.R
 \name{get_buz_day}
 \alias{get_buz_day}
-\alias{get_buz_day.default}
-\alias{get_buz_day.tiny}
-\alias{get_buz_day.rdf}
 \title{Get business day}
 \usage{
 get_buz_day(con, beg_dt, end_dt, ...)
-
-\method{get_buz_day}{default}(...)
-
-\method{get_buz_day}{tiny}(con, beg_dt, end_dt)
-
-\method{get_buz_day}{rdf}(con, beg_dt, end_dt)
 }
 \arguments{
 \item{con}{a connection}

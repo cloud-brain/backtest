@@ -21,31 +21,15 @@
 #' @importFrom DBI dbGetQuery
 #' @export
 #'
-get_buz_day <- function(con, beg_dt, end_dt, ...)
-{
-  UseMethod('get_buz_day')
-}
+get_buz_day <- function(con, beg_dt, end_dt, ...) UseMethod('get_buz_day')
 
-#' @rdname get_buz_day
-get_buz_day.default <- function(...)
-{
-  return('unknown type')
-}
+#' @export
+get_buz_day.default <- function() return('unknown type')
 
-#' @rdname get_buz_day
-get_buz_day.tiny <- function(con, beg_dt, end_dt)
-{
-  beg_dt <- dt_to_char(beg_dt)
-  end_dt <- dt_to_char(end_dt)
-  
-  if(beg_dt > end_dt)
-    stop('begin date must less than end date')
-  
-  return(sqlQuery(con, sprintf("return get_buz_day(%s,%s);",
-                               beg_dt, end_dt)))
-}
+get_buz_day.tiny <- function(con, beg_dt, end_dt) {}
 
-#' @rdname get_buz_day
+
+#' @export
 get_buz_day.rdf <- function(con, beg_dt, end_dt)
 {
   beg_dt <- dt_to_char(beg_dt[1])
