@@ -12,9 +12,13 @@ if_can_buy(con, wind_code, buz_day, ...)
 \item{wind_code}{vecter of future code list in wind_code format}
 
 \item{buz_day}{int or char, format like \%Y\%m\%d, test for this day}
+
+\item{full}{logi, return only wind_code can buy or total with tibble}
+
+\item{delist_adj}{logi, True if delist stock canbuy}
 }
 \value{
-a data.frame with stock code and flag that 1 means purchasable and 0 not
+a tibble with stock code and flag that 1 means purchasable and 0 not
 }
 \description{
 Test if the stock can buy or not at business day

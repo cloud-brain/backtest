@@ -171,7 +171,7 @@ stock_acount <-
 
             ##卖出到指定的支持，涉及卖出，因此仅接受权重
             ##amount为all是全部卖出
-            order_to = function(date, stock, weight, amount = 'all')
+            order_to = function(date, stock, weight, amount = 'all', delist_adj = F)
             {
               ##如果没有持仓，直接购买
               if(nrow(private$stock_holder) == 0)
@@ -191,7 +191,7 @@ stock_acount <-
               
               ##当前股票池
               stock_now <- mutate(private$stock_holder,
-                                  canbuy = if_can_buy(private$con, code, date, full = T)$canbuy)
+                                  canbuy = if_can_buy(private$con, code, date, full = T, delist_adj = delist_adj)$canbuy)
               wait_sell <- subset(stock_now, canbuy == 0) %>% select(-canbuy)
               stock_now <- subset(stock_now, canbuy == 1) %>% select(-canbuy) %>% 
                 mutate(price = get_price(private$con, code, date, type = 'vwap')$price)
