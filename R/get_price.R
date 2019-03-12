@@ -58,7 +58,7 @@ get_price.rdf <- function(con, wind_code, beg_dt, end_dt = NULL, type = 'close',
   {
     if(nrow(result) != length(wind_code))
     {
-      stop(sprintf('%s is not in database on %s', paste0(setdiff(wind_code, result$code), collapse = ','), format(buz_day, '%Y%m%d')))
+      stop(sprintf('%s is not in database on %s', paste0(setdiff(wind_code, result$code), collapse = ','), beg_dt))
     }
   }else{
     error_test <- result %>% count(code) %>% filter(n < max(n))
