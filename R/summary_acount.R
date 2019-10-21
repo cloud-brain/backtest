@@ -89,7 +89,7 @@ summary_acount <- function(total_acount, benchmark = F, plot = T, show_result = 
         )
       
       max_back_plot <-
-        yield %>% mutate(acount = 1 + cumprod(1+acount- benchmark)) %>% 
+        yield %>% mutate(acount = cumprod(1+acount- benchmark)) %>% 
         mutate(max_back = 100 * (acount - cummax(acount))/cummax(acount)) %>%
         ggplot(aes(
           x = date, y = max_back
