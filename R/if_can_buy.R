@@ -46,7 +46,7 @@ if_can_buy.rdf <- function(con, wind_code, buz_day, full = F, delist_adj = F)
   result <- dbGetQuery(con$con, send_query)
   
   if(nrow(result) != length(wind_code))
-    stop(sprintf('%s is not in database on %s', paste0(setdiff(wind_code, result$code), collapse = ','), format(buz_day,'%Y%m%d')))
+    stop(sprintf('%s is not in database on %s', paste0(setdiff(wind_code, result$code), collapse = ','), buz_day))
   
   if(delist_adj)
   {
