@@ -34,14 +34,9 @@ if_can_buy.rdf <- function(con, wind_code, buz_day, full = F, delist_adj = F)
 {
   stopifnot(!is.null(buz_day))
   buz_day <- dt_to_char(buz_day[1])
-  if(full)
-  {
-    send_query <- sprintf("SELECT wind_code as code, canbuy, delist FROM price_data where trade_dt = %s and wind_code in (%s) order by field(code,%s)",
-                          buz_day, comb_char(wind_code), comb_char(wind_code))
-  }else{
-    send_query <- sprintf("SELECT wind_code as code, canbuy, delist FROM price_data where trade_dt = %s and (canbuy = 1 or delist = 1) and wind_code in (%s)",
-                          buz_day, comb_char(wind_code))
-  }
+  
+  send_query <- sprintf("SELECT wind_code as code, canbuy, delist FROM price_data where trade_dt = %s and wind_code in (%s) order by field(code,%s)",
+                        buz_day, comb_char(wind_code), comb_char(wind_code))
   
   result <- dbGetQuery(con$con, send_query)
   
@@ -50,20 +45,13 @@ if_can_buy.rdf <- function(con, wind_code, buz_day, full = F, delist_adj = F)
   
   if(delist_adj)
   {
-    if(full)
-    {
-      result <- result %>% transmute(code, canbuy = ifelse(delist == 1, 1, canbuy))
-    }else{
-      result <- result$code
-    }
-  }else{
-    if(full)
-    {
-      result <- result %>% select(code, canbuy)
-    }else{
-      result <- result$code[result$canbuy == 1]
-    }
+    result <- result %>% transmute(code, canbuy = ifelse(delist == 1, 1, canbuy))
   }
-  
+  if(full)
+  {
+    result <- result %>% select(code, canbuy)
+  }else{
+    result <- result$code[result$canbuy == 1]
+  }
   return(result)
 }

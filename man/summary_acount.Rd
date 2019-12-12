@@ -5,7 +5,7 @@
 \title{Summary the acount performance}
 \usage{
 summary_acount(total_acount, benchmark = F, plot = T,
-  show_result = T, ...)
+  show_result = T, unit = "day", ...)
 }
 \arguments{
 \item{total_acount}{dataframe, with column date, acount, if benchmark mod there must be a variable named benchmark. All acount should stardardize for 1 million initial amount}
@@ -13,6 +13,8 @@ summary_acount(total_acount, benchmark = F, plot = T,
 \item{benchmark}{logical, if relative mod or not}
 
 \item{plot}{logical, plot or not}
+
+\item{unit}{the time period of barplot}
 
 \item{...}{see details in \code{\link{charts.PerformanceSummary}}}
 }

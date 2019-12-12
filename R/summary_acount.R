@@ -5,6 +5,7 @@
 #' @param total_acount dataframe, with column date, acount, if benchmark mod there must be a variable named benchmark. All acount should stardardize for 1 million initial amount
 #' @param benchmark logical, if relative mod or not
 #' @param plot logical, plot or not
+#' @param unit the time period of barplot 
 #' @param ... see details in \code{\link{charts.PerformanceSummary}}
 #'
 #' @return
@@ -40,7 +41,7 @@
 #' @export
 #'
 
-summary_acount <- function(total_acount, benchmark = F, plot = T, show_result = T, ...)
+summary_acount <- function(total_acount, benchmark = F, plot = T, show_result = T, unit = 'day', ...)
 {
   
   # ## change the net value to yield, with first acount value adjust
@@ -139,17 +140,35 @@ summary_acount <- function(total_acount, benchmark = F, plot = T, show_result = 
           # axis.title.y = element_text(size = rel(0.8))
         ) 
       
-      relative_plot <- yield %>% 
-        ggplot(aes(x = date, y = acount)) +
-        geom_bar(stat = 'identity') + 
-        # scale_y_continuous(name = "drawdowm") +
-        theme(
-          axis.text.y = element_text(angle = 90, hjust = 1),
-          axis.text.x = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title = element_blank()
-          # axis.title.y = element_text(size = rel(0.8))
-        )
+      if(unit == 'month')
+      {
+        relative_plot <- yield %>% 
+          group_by(month = format(date, '%Y%m')) %>% 
+          summarise(date = min(date), acount = prod(1 + acount) - 1) %>% 
+          ggplot(aes(x = date, y = acount)) +
+          geom_bar(stat = 'identity') + 
+          # scale_y_continuous(name = "drawdowm") +
+          theme(
+            axis.text.y = element_text(angle = 90, hjust = 1),
+            axis.text.x = element_blank(),
+            axis.ticks = element_blank(),
+            axis.title = element_blank()
+            # axis.title.y = element_text(size = rel(0.8))
+          )
+      }else{
+        relative_plot <- yield %>% 
+          ggplot(aes(x = date, y = acount)) +
+          geom_bar(stat = 'identity') + 
+          # scale_y_continuous(name = "drawdowm") +
+          theme(
+            axis.text.y = element_text(angle = 90, hjust = 1),
+            axis.text.x = element_blank(),
+            axis.ticks = element_blank(),
+            axis.title = element_blank()
+            # axis.title.y = element_text(size = rel(0.8))
+          )
+      }
+      
       
       max_back_plot <-
         total_acount %>%
@@ -182,6 +201,16 @@ summary_acount <- function(total_acount, benchmark = F, plot = T, show_result = 
                 back_ratio = yield/ -max_back,
                 sharpratio = (prod(1 + acount) - 1)/sd(acount)/sqrt(n()),
                 capital_loss = min(0, min(cumprod(1 + acount)) - 1))
+    output <- output %>% rbind(
+      yield %>% summarise(
+        year = 'total',
+        yield = prod(1 + acount) ^ (250 / n()) - 1,
+        max_back = max_back(1 + acount),
+        back_ratio = yield / -max_back,
+        sharpratio = mean(acount) / sd(acount) * sqrt(250),
+        capital_loss = min(0, min(cumprod(1 + acount)) - 1)
+      )
+    )
   }
   if(show_result)
     output %>% data.frame %>% stargazer::stargazer(type= 'text', summary = F, rownames = F)
